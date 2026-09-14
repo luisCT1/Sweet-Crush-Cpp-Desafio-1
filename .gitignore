@@ -67,3 +67,9 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Qt Creator
+*.pro.user
+*.pro.user.*
+.qtcreator/
+
