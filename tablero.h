@@ -14,5 +14,11 @@ void liberarTablero(unsigned char* datos);
 void mostrarBinario(unsigned char* datos, int nBytes);
 //imprimo el tablero con simbolos y con filas y columnas numeradas
 void mostrarTablero(unsigned char* datos, int F, int C);
+//deja la casilla en 110, o sea vacia
+void borrarFicha(unsigned char* datos, int C, int fila, int col);
+//en esa columna las fichas bajan y arriba se meten fichas nuevas
+void caerColumna(unsigned char* datos, int F, int C, int col);
+//busca 3 o mas iguales, las borra, cae y repite. no imprime en el medio
+void resolverCombinaciones(unsigned char* datos, int F, int C, int* nCombos, int* nCascadas, int* nFichas);
 
 #endif

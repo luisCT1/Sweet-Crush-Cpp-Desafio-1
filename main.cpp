@@ -35,6 +35,40 @@ int main()
     cout << endl;
     mostrarTablero(datos, F, C);
 
+    int fila = -1;
+    int col = -1;
+    cout << endl;
+    cout << "fila a borrar: " << flush;
+    cin >> fila;
+    cout << "columna a borrar: " << flush;
+    cin >> col;
+
+    if (cin.fail() || fila < 0 || fila >= F || col < 0 || col >= C) {
+        cout << "esa coordenada no esta en el tablero" << endl;
+        liberarTablero(datos);
+        return 0;
+    }
+
+    //esto todavia no es cascada. solo borro una ficha y cae esa columna
+    borrarFicha(datos, C, fila, col);
+    caerColumna(datos, F, C, col);
+
+    int combos = 0;
+    int cascadas = 0;
+    int fichasCombo = 0;
+    resolverCombinaciones(datos, F, C, &combos, &cascadas, &fichasCombo);
+
+    cout << endl;
+    cout << "combinaciones: " << combos << endl;
+    cout << "cascadas: " << cascadas << endl;
+    cout << "fichas eliminadas: " << (1 + fichasCombo) << endl;
+    cout << "puntaje: " << combos << endl;
+    cout << endl;
+
+    mostrarBinario(datos, nBytes);
+    cout << endl;
+    mostrarTablero(datos, F, C);
+
     liberarTablero(datos);
     return 0;
 }
