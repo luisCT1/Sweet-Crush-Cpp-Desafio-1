@@ -20,5 +20,12 @@ void borrarFicha(unsigned char* datos, int C, int fila, int col);
 void caerColumna(unsigned char* datos, int F, int C, int col);
 //busca 3 o mas iguales, las borra, cae y repite. no imprime en el medio
 void resolverCombinaciones(unsigned char* datos, int F, int C, int* nCombos, int* nCascadas, int* nFichas);
+//insertar siempre pide un bloque nuevo. pos puede ser F para ponerla al final
+unsigned char* insertarFila(unsigned char* datos, int* F, int C, int pos, int* nBytes, int* celdasReserva);
+//igual para columna. pos puede ser C para ponerla al final
+unsigned char* insertarColumna(unsigned char* datos, int F, int* C, int pos, int* nBytes, int* celdasReserva);
+//quitar compacta en el mismo arreglo. solo si baja del 65% se hace new mas chico
+unsigned char* eliminarFila(unsigned char* datos, int* F, int C, int pos, int* nBytes, int* celdasReserva);
+unsigned char* eliminarColumna(unsigned char* datos, int F, int* C, int pos, int* nBytes, int* celdasReserva);
 
 #endif

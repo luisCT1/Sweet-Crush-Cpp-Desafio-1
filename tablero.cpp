@@ -270,3 +270,144 @@ void resolverCombinaciones(unsigned char* datos, int F, int C, int* nCombos, int
         *nCascadas = *nCascadas + 1;
     }
 }
+
+//apago lo que ya no es ficha, para que no quede basura al final
+void limpiarSobra(unsigned char* datos, int F, int C, int nBytes)
+{
+    int bits = 3 * F * C;
+    int b = bits / 8;
+    int off = bits % 8;
+    if (b >= nBytes) {
+        return;
+    }
+    if (off == 0) {
+        for (int i = b; i < nBytes; i++) {
+            datos[i] = 0;
+        }
+    } else {
+        //los bits validos estan a la derecha. lo de la izquierda de ese byte se apaga
+        unsigned char keep = (1 << off) - 1;
+        datos[b] = datos[b] & keep;
+        for (int i = b + 1; i < nBytes; i++) {
+            datos[i] = 0;
+        }
+    }
+}
+
+//si las celdas usadas bajan de 0.65 de la ultima reserva, pido un bloque mas chico
+unsigned char* revisarMemoria(unsigned char* datos, int F, int C, int* nBytes, int* celdasReserva)
+{
+    int usadas = F * C;
+    if (*celdasReserva <= 0) {
+        return datos;
+    }
+    //evito decimales: usadas/reserva < 0.65 es usadas*100 < reserva*65
+    if (usadas * 100 >= *celdasReserva * 65) {
+        return datos;
+    }
+
+    int nNuevo = bytesDelTablero(F, C);
+    unsigned char* nuevo = new unsigned char[nNuevo];
+    for (int i = 0; i < nNuevo; i++) {
+        nuevo[i] = 0;
+    }
+    for (int i = 0; i < usadas; i++) {
+        escribirFicha(nuevo, i, leerFicha(datos, i));
+    }
+    delete[] datos;
+    *nBytes = nNuevo;
+    *celdasReserva = usadas;
+    return nuevo;
+}
+
+//insertar siempre pide un bloque nuevo. pos puede ser F para ponerla al final
+unsigned char* insertarFila(unsigned char* datos, int* F, int C, int pos, int* nBytes, int* celdasReserva)
+{
+    int F2 = *F + 1;
+    int nNuevo = bytesDelTablero(F2, C);
+    unsigned char* nuevo = new unsigned char[nNuevo];
+    for (int i = 0; i < nNuevo; i++) {
+        nuevo[i] = 0;
+    }
+
+    //copio ficha a ficha para no desalinear los 3 bits
+    for (int fila = 0; fila < pos; fila++) {
+        for (int col = 0; col < C; col++) {
+            escribirFicha(nuevo, fila * C + col, leerFicha(datos, fila * C + col));
+        }
+    }
+    for (int col = 0; col < C; col++) {
+        escribirFicha(nuevo, pos * C + col, fichaAlAzar());
+    }
+    for (int fila = pos; fila < *F; fila++) {
+        for (int col = 0; col < C; col++) {
+            escribirFicha(nuevo, (fila + 1) * C + col, leerFicha(datos, fila * C + col));
+        }
+    }
+
+    delete[] datos;
+    *F = F2;
+    *nBytes = nNuevo;
+    *celdasReserva = F2 * C;
+    return nuevo;
+}
+
+//igual que la fila, siempre new, y la columna nueva se llena al azar
+unsigned char* insertarColumna(unsigned char* datos, int F, int* C, int pos, int* nBytes, int* celdasReserva)
+{
+    int C2 = *C + 1;
+    int nNuevo = bytesDelTablero(F, C2);
+    unsigned char* nuevo = new unsigned char[nNuevo];
+    for (int i = 0; i < nNuevo; i++) {
+        nuevo[i] = 0;
+    }
+
+    for (int fila = 0; fila < F; fila++) {
+        for (int col = 0; col < pos; col++) {
+            escribirFicha(nuevo, fila * C2 + col, leerFicha(datos, fila * (*C) + col));
+        }
+        escribirFicha(nuevo, fila * C2 + pos, fichaAlAzar());
+        for (int col = pos; col < *C; col++) {
+            escribirFicha(nuevo, fila * C2 + (col + 1), leerFicha(datos, fila * (*C) + col));
+        }
+    }
+
+    delete[] datos;
+    *C = C2;
+    *nBytes = nNuevo;
+    *celdasReserva = F * C2;
+    return nuevo;
+}
+
+//quitar compacta en el mismo arreglo. solo si baja del 65% se hace new mas chico
+unsigned char* eliminarFila(unsigned char* datos, int* F, int C, int pos, int* nBytes, int* celdasReserva)
+{
+    int dest = pos * C;
+    int nOld = (*F) * C;
+    for (int i = (pos + 1) * C; i < nOld; i++) {
+        escribirFicha(datos, dest, leerFicha(datos, i));
+        dest++;
+    }
+    *F = *F - 1;
+    limpiarSobra(datos, *F, C, *nBytes);
+    return revisarMemoria(datos, *F, C, nBytes, celdasReserva);
+}
+
+//quito una columna y compacto. tampoco caen las fichas
+unsigned char* eliminarColumna(unsigned char* datos, int F, int* C, int pos, int* nBytes, int* celdasReserva)
+{
+    int dest = 0;
+    int Cvieja = *C;
+    for (int fila = 0; fila < F; fila++) {
+        for (int col = 0; col < Cvieja; col++) {
+            if (col == pos) {
+                continue;
+            }
+            escribirFicha(datos, dest, leerFicha(datos, fila * Cvieja + col));
+            dest++;
+        }
+    }
+    *C = Cvieja - 1;
+    limpiarSobra(datos, F, *C, *nBytes);
+    return revisarMemoria(datos, F, *C, nBytes, celdasReserva);
+}
