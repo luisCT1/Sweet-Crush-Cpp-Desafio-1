@@ -42,7 +42,9 @@ void liberarTablero(unsigned char* datos)
 //imprime cada byte en bits, del 7 al 0
 void mostrarBinario(unsigned char* datos, int nBytes)
 {
-    cout << "trama (bit 7 a bit 0 de cada byte):" << endl;
+    cout << endl;
+    cout << "---- Tablero de bits ----" << endl;
+    cout << "Cada byte se muestra del bit 7 al bit 0." << endl;
     for (int i = 0; i < nBytes; i++) {
         cout << "byte " << i << ": ";
         //los imprimo de izquierda a derecha, empezando por el bit 7
@@ -69,7 +71,9 @@ void mostrarTablero(unsigned char* datos, int F, int C)
     simbolo[4] = '+';
     simbolo[5] = '%';
 
-    cout << "tablero:" << endl;
+    cout << endl;
+    cout << "---- Tablero del juego ----" << endl;
+    cout << "Filas y columnas numeradas desde 0." << endl;
 
     //arriba pongo el numero de cada columna para ubicarme
     cout << "   ";
@@ -104,6 +108,9 @@ void borrarFicha(unsigned char* datos, int C, int fila, int col)
 //en esa columna las fichas bajan y arriba se meten fichas nuevas
 void caerColumna(unsigned char* datos, int F, int C, int col)
 {
+    if (F < 1) {
+        return;
+    }
     //empiezo abajo y voy subiendo. si la casilla tiene ficha la pego
     //lo mas abajo que pueda. las vacias las salto
     int destino = F - 1;
@@ -172,7 +179,7 @@ void marcarGrupos(unsigned char* datos, unsigned char* marcas, int F, int C)
     }
 }
 
-//recorre un grupo marcado. una T queda en un solo grupo porque comparten ficha
+//recorre un grupo marcado. T y L quedan en un solo grupo: el cruce comparte ficha
 void recorrerGrupo(unsigned char* marcas, unsigned char* visto, int F, int C, int fila, int col)
 {
     if (fila < 0 || fila >= F || col < 0 || col >= C) {
@@ -189,7 +196,7 @@ void recorrerGrupo(unsigned char* marcas, unsigned char* visto, int F, int C, in
     recorrerGrupo(marcas, visto, F, C, fila, col + 1);
 }
 
-//cuantas combinaciones hay. si dos tiras no comparten ficha, son dos
+//cuantas combinaciones hay. T o L: una. si dos tiras no comparten ficha, son dos
 int contarCombinaciones(unsigned char* marcas, int F, int C)
 {
     int n = F * C;
@@ -241,6 +248,9 @@ void resolverCombinaciones(unsigned char* datos, int F, int C, int* nCombos, int
     *nCombos = 0;
     *nCascadas = 0;
     *nFichas = 0;
+    if (F < 1 || C < 1) {
+        return;
+    }
 
     int n = F * C;
     while (true) {
@@ -260,7 +270,7 @@ void resolverCombinaciones(unsigned char* datos, int F, int C, int* nCombos, int
             break;
         }
 
-        //marco todas, borro todas, despues caigo. una T cuenta como una
+        //marco todas, borro todas, despues caigo. T o L cuentan como una
         *nCombos = *nCombos + contarCombinaciones(marcas, F, C);
         *nFichas = *nFichas + borrarMarcadas(datos, marcas, F, C);
         delete[] marcas;
